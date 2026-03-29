@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎭 Drama Master Quiz - Interactive Experience</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(to bottom, #000814, #001d3d, #003d5b);
+            min-height: 100vh;
+            padding: 80px 20px 20px;
+            overflow-x: hidden;
+            color: #fff;
+            position: relative;
+        }
+        
+        /* ========== ANIMATED BACKGROUND ========== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(0, 255, 136, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 136, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(100, 200, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: bgFloat 15s ease-in-out infinite;
+        }
+        
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, -50px); }
+        }
+        
+        /* ========== AUDIO BAR - TOP FIXED ========== */
+        .audio-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: linear-gradient(90deg, rgba(0,5,15,0.97), rgba(10,0,30,0.97));
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(180, 0, 255, 0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 18px;
+            box-shadow: 0 4px 30px rgba(150, 0, 255, 0.2);
+        }
+        .audio-bar-container { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .audio-icon-box {
+            width: 55px; height: 55px; border-radius: 10px;
+            background: rgba(180,0,255,0.15); border: 2px solid rgba(180,0,255,0.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; flex-shrink: 0;
+            box-shadow: 0 0 15px rgba(180,0,255,0.3);
+        }
+        .audio-bar-info { display: flex; flex-direction: column; gap: 3px; }
+        .audio-bar-title { color: #cc44ff; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .audio-bar-name { color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500; }
+        .audio-progress-wrap { flex: 1; max-width: 200px; display: flex; flex-direction: column; gap: 3px; }
+        .audio-progress-bar { width: 100%; height: 4px; background: rgba(180,0,255,0.2); border-radius: 2px; overflow: hidden; cursor: pointer; }
+        .audio-progress-fill { height: 100%; background: linear-gradient(90deg, #cc44ff, #ff44cc); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
+        .audio-time-txt { font-size: 10px; color: rgba(255,255,255,0.4); }
+        .audio-controls { display: flex; align-items: center; gap: 8px; margin: 0 10px; }
+        .a-ctrl {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid rgba(180,0,255,0.5); background: rgba(180,0,255,0.1);
+            color: #cc44ff; font-size: 16px; cursor: pointer;
+            transition: all 0.25s; display: flex; align-items: center; justify-content: center;
+        }
+        .a-ctrl:hover { background: rgba(180,0,255,0.25); border-color: #cc44ff; transform: scale(1.15); box-shadow: 0 0 15px rgba(180,0,255,0.5); }
+        .a-ctrl.a-play {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #cc44ff, #ff44cc);
+            border: none; color: #000814; font-size: 20px; font-weight: 900;
+            box-shadow: 0 0 20px rgba(180,0,255,0.5);
+        }
+        .a-ctrl.a-play:hover { transform: scale(1.2); box-shadow: 0 0 30px rgba(180,0,255,0.8); }
+        .a-ctrl.a-mute.muted { background: rgba(255,80,80,0.15); border-color: rgba(255,80,80,0.5); color: #ff5050; }
+        .audio-bar-btns { display: flex; gap: 6px; margin-left: auto; }
+        .a-track-btn {
+            padding: 8px 14px; background: rgba(180,0,255,0.12); color: #cc44ff;
+            border: 2px solid rgba(180,0,255,0.35); border-radius: 8px;
+            font-size: 11px; font-weight: 700; cursor: pointer;
+            transition: all 0.25s; letter-spacing: 0.5px;
+        }
+        .a-track-btn:hover { background: rgba(180,0,255,0.25); border-color: #cc44ff; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(180,0,255,0.4); }
+        .a-track-btn.active { background: linear-gradient(135deg, #cc44ff, #ff44cc); color: #000814; border-color: #cc44ff; box-shadow: 0 0 15px rgba(180,0,255,0.5); }
+        @media (max-width: 768px) { .audio-bar-btns { display: none; } .audio-bar-info { display: none; } .audio-progress-wrap { display: none; } }
+
+        /* ========== MAIN CONTAINER ========== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* ========== HEADER SECTION ========== */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            animation: slideDown 0.8s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00ff88, #00ffcc, #0088ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            letter-spacing: -2px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+        }
+        
+        .quiz-meta {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 20px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .meta-icon {
+            font-size: 1.4rem;
+        }
+        
+        /* ========== QUESTIONS CONTAINER ========== */
+        #quiz {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+            animation: fadeIn 0.8s ease 0.2s backwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .question-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 150, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #00ff88, transparent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        
+        .question-card:hover {
+            border-color: rgba(0, 255, 150, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.15);
+        }
+        
+        .question-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .q-badge {
+            display: inline-block;
+            background: rgba(0, 255, 150, 0.2);
+            border: 1px solid rgba(0, 255, 150, 0.4);
+            color: #00ff88;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+        
+        .q-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #fff;
+        }
+        
+        .options {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            padding: 10px 15px;
+            background: rgba(0, 255, 150, 0.08);
+            border: 1px solid rgba(0, 255, 150, 0.15);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .option:hover {
+            background: rgba(0, 255, 150, 0.2);
+            border-color: rgba(0, 255, 150, 0.5);
+            color: #fff;
+            transform: translateX(4px);
+        }
+
+        .option.selected {
+            background: rgba(0, 255, 136, 0.25);
+            border-color: #00ff88;
+            color: #00ff88;
+            font-weight: 700;
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+        }
+        
+        .answer-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 150, 0.25);
+            border-radius: 8px;
+            color: #00ff88;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            background: rgba(0, 255, 150, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 150, 0.3);
+        }
+        
+        .answer-input::placeholder {
+            color: rgba(0, 255, 150, 0.4);
+        }
+        
+        /* ========== SUBMIT BUTTON ========== */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 50px;
+            animation: slideUp 0.8s ease 0.4s backwards;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        #submit, .reset-btn {
+            padding: 15px 45px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #submit {
+            background: linear-gradient(135deg, #00ff88, #00ffcc);
+            color: #000814;
+            box-shadow: 0 8px 30px rgba(0, 255, 136, 0.4);
+        }
+        
+        #submit:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 255, 136, 0.6);
+        }
+        
+        #submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .reset-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #fff;
+        }
+        
+        /* ========== LOADER ========== */
+        #loader {
+            display: none;
+            text-align: center;
+            margin: 50px 0;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .loader-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 255, 150, 0.2);
+            border-top: 4px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loader-text {
+            font-size: 1.1rem;
+            color: #00ff88;
+            font-weight: 600;
+        }
+        
+        /* ========== RESULTS SECTION ========== */
+        #results {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 150, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 50px;
+            animation: slideUp 0.6s ease;
+        }
+        
+        .score-display {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(0, 255, 150, 0.1);
+            border: 2px solid rgba(0, 255, 150, 0.3);
+            border-radius: 15px;
+        }
+        
+        .score-label {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        #score {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00ff88, #00ffcc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .score-percentage {
+            font-size: 1.1rem;
+            color: #00ff88;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        
+        #details {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .result-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .result-item.correct {
+            border-left-color: #00ff88;
+            border-color: rgba(0, 255, 136, 0.2);
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .result-item.wrong {
+            border-left-color: #ff0066;
+            border-color: rgba(255, 0, 102, 0.2);
+            background: rgba(255, 0, 102, 0.05);
+        }
+        
+        .result-item:hover {
+            transform: translateX(5px);
+        }
+        
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .quiz-meta {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            #quiz {
+                grid-template-columns: 1fr;
+            }
+            
+            .video-ad-buttons {
+                display: none;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            #submit, .reset-btn {
+                width: 100%;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ========== HEADER ========== -->
+        <div class="header">
+            <h1>🎭 DRAMA MASTER</h1>
+            <p>Interactive Quiz Experience - Test Your Knowledge</p>
+            <div class="quiz-meta">
+                <div class="meta-item">
+                    <span class="meta-icon">📝</span>
+                    <span>30 Questions</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-icon">⏱️</span>
+                    <span>No Time Limit</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-icon">🎭</span>
+                    <span>Riders to the Sea</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== QUIZ QUESTIONS ========== -->
+        <div id="quiz"></div>
+        
+        <!-- ========== BUTTONS ========== -->
+        <div class="button-group">
+            <button id="submit">Submit Answers</button>
+            <button class="reset-btn" onclick="location.reload()">Start Over</button>
+        </div>
+        
+        <!-- ========== LOADER ========== -->
+        <div id="loader">
+            <div class="loader-content">
+                <div class="spinner"></div>
+                <div class="loader-text">Calculating your results...</div>
+            </div>
+        </div>
+        
+        <!-- ========== RESULTS ========== -->
+        <div id="results">
+            <div class="score-display">
+                <div class="score-label">Your Score</div>
+                <div id="score">0/30</div>
+                <div class="score-percentage">0%</div>
+            </div>
+            <div id="details"></div>
+        </div>
+    </div>
+    
+    <!-- ========== AUDIO BAR ========== -->
+    <div class="audio-bar">
+        <div class="audio-bar-container">
+            <div class="audio-icon-box" id="aIconBox">🎵</div>
+            <div class="audio-bar-info">
+                <div class="audio-bar-title">♪ Now Playing</div>
+                <div class="audio-bar-name" id="aTrackName">Audio 1</div>
+            </div>
+            <div class="audio-progress-wrap">
+                <div class="audio-progress-bar" onclick="seekAudio(event)">
+                    <div class="audio-progress-fill" id="aProgressFill"></div>
+                </div>
+                <div class="audio-time-txt" id="aTimeTxt">0:00 / 0:00</div>
+            </div>
+        </div>
+        <div class="audio-controls">
+            <button class="a-ctrl" onclick="prevAudio()">⏮</button>
+            <button class="a-ctrl a-play" id="aPlayBtn" onclick="toggleAudio()">▶</button>
+            <button class="a-ctrl" onclick="nextAudio()">⏭</button>
+            <button class="a-ctrl a-mute muted" id="aMuteBtn" onclick="toggleAudioMute()">🔇</button>
+        </div>
+        <div class="audio-bar-btns">
+            <button class="a-track-btn active" onclick="switchAudio(0)">A1</button>
+            <button class="a-track-btn" onclick="switchAudio(1)">A2</button>
+            <button class="a-track-btn" onclick="switchAudio(2)">A3</button>
+            <button class="a-track-btn" onclick="switchAudio(3)">A4</button>
+        </div>
+    </div>
+    <audio id="audioPlayer" preload="auto" muted>
+        <source id="audioSource" src="a1.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        // ========== AUDIO PLAYER ========== 
+        const audios = ['a1.mp3','a2.mp3','a3.mp3','a4.mp3'];
+        let curAudio = 0;
+        const aPlayer = document.getElementById('audioPlayer');
+        const aPlayBtn = document.getElementById('aPlayBtn');
+        const aMuteBtn = document.getElementById('aMuteBtn');
+
+        function fmtTime(s) {
+            if (isNaN(s)) return '0:00';
+            return Math.floor(s/60) + ':' + (Math.floor(s%60)<10?'0':'') + Math.floor(s%60);
+        }
+        function switchAudio(i) {
+            curAudio = i;
+            document.getElementById('audioSource').src = audios[i];
+            aPlayer.load();
+            aPlayer.muted = true;
+            aMuteBtn.textContent = '🔇'; aMuteBtn.classList.add('muted');
+            aPlayer.oncanplaythrough = () => {
+                aPlayer.play();
+                aPlayBtn.textContent = '⏸';
+                document.getElementById('aIconBox').textContent = '🎶';
+                document.getElementById('aTrackName').textContent = 'Audio ' + (i+1);
+                aPlayer.oncanplaythrough = null;
+            };
+            document.querySelectorAll('.a-track-btn').forEach((b,j) => b.classList.toggle('active', j===i));
+        }
+        function toggleAudio() {
+            if (aPlayer.paused) {
+                aPlayer.play(); aPlayBtn.textContent = '⏸';
+                document.getElementById('aIconBox').textContent = '🎶';
+            } else {
+                aPlayer.pause(); aPlayBtn.textContent = '▶';
+                document.getElementById('aIconBox').textContent = '🎵';
+            }
+        }
+        function nextAudio() { switchAudio((curAudio+1) % audios.length); }
+        function prevAudio() { switchAudio((curAudio-1+audios.length) % audios.length); }
+        function toggleAudioMute() {
+            aPlayer.muted = !aPlayer.muted;
+            aMuteBtn.textContent = aPlayer.muted ? '🔇' : '🔊';
+            aMuteBtn.classList.toggle('muted', aPlayer.muted);
+        }
+        function seekAudio(e) {
+            const r = e.offsetX / e.currentTarget.offsetWidth;
+            if (aPlayer.duration) aPlayer.currentTime = r * aPlayer.duration;
+        }
+        aPlayer.addEventListener('timeupdate', () => {
+            if (aPlayer.duration) {
+                document.getElementById('aProgressFill').style.width = (aPlayer.currentTime/aPlayer.duration*100) + '%';
+                document.getElementById('aTimeTxt').textContent = fmtTime(aPlayer.currentTime) + ' / ' + fmtTime(aPlayer.duration);
+            }
+        });
+        aPlayer.addEventListener('ended', nextAudio);
+        aPlayer.addEventListener('error', nextAudio);
+
+        window.addEventListener('load', () => {
+            aPlayer.play().then(() => { aPlayBtn.textContent = '⏸'; document.getElementById('aIconBox').textContent = '🎶'; }).catch(() => {});
+        });
+
+        // ========== QUIZ FUNCTIONALITY ========== 
+        const quizData = [
+            {
+                id: 1,
+                question: "What is the main setting of the play 'Riders to the Sea'?",
+                options: {
+                    A: "Dublin city",
+                    B: "A small village on the Aran Islands",
+                    C: "A coastal town in England",
+                    D: "A fishing port in Scotland"
+                },
+                answer: "B"
+            },
+            {
+                id: 2,
+                question: "Who is the main character of the play?",
+                options: {
+                    A: "Cathleen",
+                    B: "Bartley",
+                    C: "Maurya (the mother)",
+                    D: "An old woman"
+                },
+                answer: "C"
+            },
+            {
+                id: 3,
+                question: "What did the sea take away from Maurya before the play begins?",
+                options: {
+                    A: "Her house",
+                    B: "Her wealth",
+                    C: "Her sons",
+                    D: "Her land"
+                },
+                answer: "C"
+            },
+            {
+                id: 4,
+                question: "How many sons did Maurya lose to the sea?",
+                options: {
+                    A: "One",
+                    B: "Two",
+                    C: "Three",
+                    D: "Four"
+                },
+                answer: "C"
+            },
+            {
+                id: 5,
+                question: "What is Bartley's relationship to the family?",
+                options: {
+                    A: "He is Maurya's husband",
+                    B: "He is Maurya's youngest son",
+                    C: "He is Maurya's father",
+                    D: "He is a stranger"
+                },
+                answer: "B"
+            },
+            {
+                id: 6,
+                question: "What was Michael's fate before the play starts?",
+                options: {
+                    A: "He became a merchant",
+                    B: "He drowned in the sea",
+                    C: "He moved to America",
+                    D: "He married and had children"
+                },
+                answer: "B"
+            },
+            {
+                id: 7,
+                question: "Why does Maurya bless Bartley reluctantly?",
+                options: {
+                    A: "She is angry with him",
+                    B: "She is afraid of his death",
+                    C: "She has no water to bless with",
+                    D: "She wants him to suffer"
+                },
+                answer: "B"
+            },
+            {
+                id: 8,
+                question: "What does Maurya do when she realizes Bartley will die?",
+                options: {
+                    A: "She runs after him",
+                    B: "She sits and accepts her fate",
+                    C: "She calls for help",
+                    D: "She faints"
+                },
+                answer: "B"
+            },
+            {
+                id: 9,
+                question: "What is the main theme of the play?",
+                options: {
+                    A: "Love and romance",
+                    B: "Revenge and betrayal",
+                    C: "The power of the sea and acceptance of death",
+                    D: "Wealth and poverty"
+                },
+                answer: "C"
+            },
+            {
+                id: 10,
+                question: "What is Bartley going to the fair to do?",
+                options: {
+                    A: "To buy food",
+                    B: "To sell horses",
+                    C: "To find work",
+                    D: "To meet friends"
+                },
+                answer: "B"
+            },
+            {
+                id: 11,
+                question: "How long is the play set?",
+                options: {
+                    A: "One day",
+                    B: "Three days",
+                    C: "One week",
+                    D: "One month"
+                },
+                answer: "A"
+            },
+            {
+                id: 12,
+                question: "What weather conditions are mentioned in the play?",
+                options: {
+                    A: "Sunny and calm",
+                    B: "Stormy and dangerous",
+                    C: "Foggy and cold",
+                    D: "Windy and mild"
+                },
+                answer: "B"
+            },
+            {
+                id: 13,
+                question: "Who confirms Bartley's death?",
+                options: {
+                    A: "Maurya",
+                    B: "Cathleen",
+                    C: "A priest",
+                    D: "Some women"
+                },
+                answer: "D"
+            },
+            {
+                id: 14,
+                question: "What does the play suggest about the cycle of death?",
+                options: {
+                    A: "Death is always avoidable",
+                    B: "Death comes to all and must be accepted",
+                    C: "Only the poor die",
+                    D: "Death is always unexpected"
+                },
+                answer: "B"
+            },
+            {
+                id: 15,
+                question: "What is the tone of the play?",
+                options: {
+                    A: "Humorous and light",
+                    B: "Tragic and somber",
+                    C: "Romantic and hopeful",
+                    D: "Angry and aggressive"
+                },
+                answer: "B"
+            },
+            {
+                id: 16,
+                question: "What did Maurya find that confirmed Michael's death?",
+                options: {
+                    A: "His body",
+                    B: "His shirt",
+                    C: "A letter",
+                    D: "A ring"
+                },
+                answer: "B"
+            },
+            {
+                id: 17,
+                question: "What vision does Maurya have?",
+                options: {
+                    A: "Michael and Bartley riding horses",
+                    B: "Two fishermen",
+                    C: "Michael and Bartley riding horses",
+                    D: "Two fishermen"
+                },
+                answer: "C"
+            },
+            {
+                id: 18,
+                question: "What did the vision make the mother realize?",
+                options: {
+                    A: "She would be rich",
+                    B: "Her sons would return",
+                    C: "She had lost her sons forever",
+                    D: "Bartley would stay"
+                },
+                answer: "C"
+            },
+            {
+                id: 19,
+                question: "Why did the mother accept the idea of her son's death?",
+                options: {
+                    A: "She was tired of life",
+                    B: "She was a religious woman",
+                    C: "She wanted to be alone",
+                    D: "She was angry"
+                },
+                answer: "B"
+            },
+            {
+                id: 20,
+                question: "What helped the mother accept death?",
+                options: {
+                    A: "Wealth",
+                    B: "Fear",
+                    C: "Patience and faith in God",
+                    D: "Advice from the priest"
+                },
+                answer: "C"
+            },
+            {
+                id: 21,
+                question: "What does the bad weather symbolize in the play?",
+                options: {
+                    A: "Happiness and peace",
+                    B: "The beauty of nature",
+                    C: "Danger and tragedy",
+                    D: "A good fishing season"
+                },
+                answer: "C"
+            },
+            {
+                id: 22,
+                question: "What do the roaring sea waves represent?",
+                options: {
+                    A: "Calm life on the island",
+                    B: "The power of the sea",
+                    C: "The villagers' happiness",
+                    D: "Safety for fishermen"
+                },
+                answer: "B"
+            },
+            {
+                id: 23,
+                question: "What does the burnt cake symbolize?",
+                options: {
+                    A: "A successful family life",
+                    B: "Celebration and joy",
+                    C: "Failure and misfortune",
+                    D: "Wealth and prosperity"
+                },
+                answer: "C"
+            },
+            {
+                id: 24,
+                question: "What was the rope Bartley wanted to use originally?",
+                options: {
+                    A: "For tying the horses",
+                    B: "For fishing",
+                    C: "For carrying goods",
+                    D: "As a holder"
+                },
+                answer: "D"
+            },
+            {
+                id: 25,
+                question: "What did the rope eventually symbolize?",
+                options: {
+                    A: "Hope and survival",
+                    B: "Bartley's journey",
+                    C: "Carrying Bartley's dead body",
+                    D: "Protection from the sea"
+                },
+                answer: "C"
+            },
+            {
+                id: 26,
+                question: "What do the boards in the play symbolize?",
+                options: {
+                    A: "Repairing the house",
+                    B: "Building a boat",
+                    C: "Making Bartley's coffin",
+                    D: "Selling wood"
+                },
+                answer: "C"
+            },
+            {
+                id: 27,
+                question: "What is the symbolism of Bartley wearing Michael's shirt?",
+                options: {
+                    A: "Love for his brother",
+                    B: "Poverty",
+                    C: "He will join his brother in death",
+                    D: "He had no clothes"
+                },
+                answer: "C"
+            },
+            {
+                id: 28,
+                question: "What does the mother's vision symbolize?",
+                options: {
+                    A: "Her imagination",
+                    B: "Her happiness",
+                    C: "Evidence of Bartley's death",
+                    D: "Hope for the future"
+                },
+                answer: "C"
+            },
+            {
+                id: 29,
+                question: "Why couldn't the mother bless her two sons in her vision?",
+                options: {
+                    A: "She was angry",
+                    B: "They were far away",
+                    C: "They were already dead",
+                    D: "She was sick"
+                },
+                answer: "C"
+            },
+            {
+                id: 30,
+                question: "What do the drops of water symbolize in the play?",
+                options: {
+                    A: "Rain and life",
+                    B: "Tears of the mother",
+                    C: "The power of the sea to kill fishermen",
+                    D: "Cleanliness"
+                },
+                answer: "C"
+            }
+        ];
+        
+        // ========== GENERATE QUIZ ========== 
+        const quizContainer = document.getElementById('quiz');
+        let quizHTML = '';
+        
+        quizData.forEach((q) => {
+            quizHTML += `
+                <div class="question-card">
+                    <div class="q-badge">Q${q.id}/30</div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options">
+                        ${Object.entries(q.options).map(([key, value]) => 
+                            `<div class="option" onclick="selectOption(this, '${key}', ${q.id})"><strong>${key}.</strong> ${value}</div>`
+                        ).join('')}
+                    </div>
+                    <input type="text" class="answer-input" id="q${q.id}" placeholder="A, B, C or D" maxlength="1">
+                </div>
+            `;
+        });
+        
+        quizContainer.innerHTML = quizHTML;
+
+        // ========== CLICKABLE OPTIONS ========== 
+        function selectOption(el, key, qId) {
+            // Remove selected from siblings
+            el.closest('.options').querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            // Fill input
+            document.getElementById('q' + qId).value = key;
+        }
+        
+        // ========== INPUT VALIDATION ========== 
+        document.querySelectorAll('.answer-input').forEach(input => {
+            input.oninput = e => e.target.value = e.target.value.toUpperCase().replace(/[^ABCD]/g, '');
+        });
+        
+        // ========== SUBMIT HANDLER ========== 
+        document.getElementById('submit').onclick = () => {
+            const userAnswers = {};
+            let allAnswered = true;
+            
+            quizData.forEach(q => {
+                const answer = document.getElementById(`q${q.id}`).value.trim();
+                if (!answer) {
+                    allAnswered = false;
+                }
+                userAnswers[`q${q.id}`] = answer;
+            });
+            
+            if (!allAnswered) {
+                alert('⚠️ Please answer all questions before submitting!');
+                return;
+            }
+            
+            document.getElementById('submit').disabled = true;
+            document.getElementById('loader').style.display = 'block';
+            
+            setTimeout(() => {
+                let score = 0;
+                let html = '';
+                
+                quizData.forEach(q => {
+                    const userAnswer = userAnswers[`q${q.id}`];
+                    const isCorrect = userAnswer === q.answer;
+                    if (isCorrect) score++;
+                    
+                    html += `
+                        <div class="result-item ${isCorrect ? 'correct' : 'wrong'}">
+                            <div style="font-weight:700; color:#fff; margin-bottom:10px; font-size:17px;">
+                                ${isCorrect ? '✅' : '❌'} Q${q.id}: ${q.question}
+                            </div>
+                            <div style="color:${isCorrect ? '#00ff88' : '#ff0066'}; font-weight:600; margin-top:12px; font-size:16px;">
+                                Your Answer: ${userAnswer} - ${q.options[userAnswer] || 'Not answered'}
+                            </div>
+                            ${!isCorrect ? `<div style="color:#00ff88; font-weight:600; margin-top:10px; font-size:16px;">
+                                ✓ Correct Answer: ${q.answer} - ${q.options[q.answer]}
+                            </div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                const percentage = ((score / 30) * 100).toFixed(1);
+                
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('score').textContent = `${score}/30`;
+                document.querySelector('.score-percentage').textContent = `${percentage}%`;
+                document.getElementById('details').innerHTML = html;
+                document.getElementById('results').style.display = 'block';
+                
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            }, 2000);
+        };
+    </script>
+</body>
+</html>
